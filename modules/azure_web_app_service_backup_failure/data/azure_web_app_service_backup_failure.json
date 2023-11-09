@@ -1,0 +1,122 @@
+{
+  "name": "azure_web_app_service_backup_failure",
+  "description": "This incident type refers to the failure of backing up data in Azure Web App Service. It could be caused by various reasons such as incorrect configuration, insufficient storage, or network issues, which results in the inability to create a backup of the web app service. The failure of backup could lead to data loss, which may affect the availability and recovery of the web app service.",
+  "params": [
+    {
+      "name": "BACKUP_FREQUENCY",
+      "value": ""
+    },
+    {
+      "name": "WEB_APP_NAME",
+      "value": ""
+    },
+    {
+      "name": "RESOURCE_GROUP_NAME",
+      "value": ""
+    },
+    {
+      "name": "BACKUP_RETENTION",
+      "value": ""
+    },
+    {
+      "name": "BACKUP_NAME",
+      "value": ""
+    },
+    {
+      "name": "CONTAINER_URL",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Azure Web App Service Backup Failure\nThis incident type refers to the failure of backing up data in Azure Web App Service. It could be caused by various reasons such as incorrect configuration, insufficient storage, or network issues, which results in the inability to create a backup of the web app service. The failure of backup could lead to data loss, which may affect the availability and recovery of the web app service."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the web app is running"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az webapp show --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --query state`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the status of the last backup"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az webapp config backup list --resource-group $RESOURCE_GROUP --webapp-name $WEB_APP_NAME --query [0].status`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the backup schedule"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az webapp config backup show --resource-group $RESOURCE_GROUP --webapp-name $WEB_APP_NAME --backup-name $BACKUP_NAME --query backupSchedule`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the backup storage account configurations"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az webapp config backup show --resource-group $RESOURCE_GROUP --webapp-name $WEB_APP_NAME --backup-name $BACKUP_NAME --query storageAccountUrl`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Azure Web App Service logs to identify the root cause of the backup failure. This may include checking for any error messages or warnings in the logs."
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_backup_status_script($WEB_APP_NAME, $RESOURCE_GROUP_NAME)"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Configure a new backup schedule for the webapp"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_config_backup_update($BACKUP_FREQUENCY, $WEB_APP_NAME, $RESOURCE_GROUP_NAME, $BACKUP_RETENTION, $BACKUP_NAME, $CONTAINER_URL)"
+    }
+  ]
+}
